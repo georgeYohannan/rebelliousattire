@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, BookHeart, BookOpen, Book, Settings, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
+import { useTheme } from '@/contexts/ThemeContext';
+import { useState, useEffect } from 'react';
 
 const navigation = [
   { name: 'Home', href: '/', icon: Home },
@@ -16,18 +18,27 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
-    <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-card border-r border-border">
+    <aside className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col bg-card border-r border-border transition-colors duration-200">
       <div className="flex flex-col flex-grow pt-8 pb-4 overflow-y-auto">
         <div className="flex items-center justify-center px-4 mb-8">
-          <Image
-            src="/rebelliousattire_logo.png"
-            alt="Rebellious Attire"
-            width={180}
-            height={60}
-            className="h-auto w-40"
-          />
+          {mounted && (
+            <Image
+              src={theme === 'dark' ? '/rebelliousattire_logo_dark.png' : '/rebelliousattire_logo_light.png'}
+              alt="Rebellious Attire"
+              width={180}
+              height={60}
+              className="h-auto w-40"
+              priority
+            />
+          )}
         </div>
         <nav className="flex-1 px-4 space-y-2">
           {navigation.map((item) => {

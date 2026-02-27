@@ -17,7 +17,7 @@ export function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 transition-colors duration-200">
       <div className="grid grid-cols-6 h-16">
         {navigation.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));

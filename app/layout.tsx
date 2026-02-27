@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Sidebar } from '@/components/Sidebar';
 import { MobileNav } from '@/components/MobileNav';
 import { Header } from '@/components/Header';
@@ -17,21 +18,23 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body className="antialiased">
-        <AuthProvider>
-          <div className="min-h-screen bg-background">
-            <Sidebar />
-            <div className="lg:pl-64">
-              <Header />
-              <main className="pb-20 lg:pb-8">
-                {children}
-              </main>
+        <ThemeProvider>
+          <AuthProvider>
+            <div className="min-h-screen bg-background">
+              <Sidebar />
+              <div className="lg:pl-64">
+                <Header />
+                <main className="pb-20 lg:pb-8">
+                  {children}
+                </main>
+              </div>
+              <MobileNav />
             </div>
-            <MobileNav />
-          </div>
-          <Toaster />
-        </AuthProvider>
+            <Toaster />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
