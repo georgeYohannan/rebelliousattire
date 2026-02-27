@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookHeart, BookOpen, Book, Settings } from 'lucide-react';
+import { Home, BookHeart, BookOpen, Book, Settings, MessageCircle } from 'lucide-react';
 import Image from 'next/image';
 
 const navigation = [
@@ -10,6 +10,7 @@ const navigation = [
   { name: 'Pray', href: '/pray', icon: BookHeart },
   { name: 'Learn', href: '/learn', icon: BookOpen },
   { name: 'Bible', href: '/bible', icon: Book },
+  { name: 'Ask', href: '/ask', icon: MessageCircle },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
