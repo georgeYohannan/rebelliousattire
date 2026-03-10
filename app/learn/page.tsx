@@ -33,7 +33,7 @@ export default function LearnPage() {
               <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
                 Browse the complete YOUCAT with hierarchical navigation through Parts, Sections, Chapters, and Questions
               </p>
-              <Link href="/learn/youcat">
+              <Link href="/learn/youcat/explore">
                 <Card className="p-6 bg-mustard text-navy hover:bg-mustard/90 transition-colors cursor-pointer inline-block">
                   <div className="font-semibold text-lg">
                     Explore YOUCAT
