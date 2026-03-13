@@ -18,13 +18,11 @@ import {
   fetchCccSectionsByPartId,
   fetchCccChaptersBySectionId,
   fetchCccArticlesByChapterId,
-  fetchCccSubheadingsByChapterId,
   fetchCccParagraphsByScope,
   type CccPart,
   type CccSection,
   type CccChapter,
   type CccArticle,
-  type CccSubheading,
   type CccParagraph,
 } from '@/lib/ccc/ccc-queries';
 import { CccBookReader } from '@/components/ccc/CccBookReader';
@@ -34,13 +32,12 @@ export default function CccExplorePage() {
   const [sections, setSections] = useState<CccSection[]>([]);
   const [chapters, setChapters] = useState<CccChapter[]>([]);
   const [articles, setArticles] = useState<CccArticle[]>([]);
-  const [subheadings, setSubheadings] = useState<CccSubheading[]>([]);
 
   const [selectedPart, setSelectedPart] = useState<CccPart | null>(null);
   const [selectedSection, setSelectedSection] = useState<CccSection | null>(null);
   const [selectedChapter, setSelectedChapter] = useState<CccChapter | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<CccArticle | null>(null);
-  const [selectedSubheading, setSelectedSubheading] = useState<CccSubheading | null>(null);
+  const [selectedParagraph, setSelectedParagraph] = useState<CccParagraph | null>(null);
 
   const [paragraphs, setParagraphs] = useState<CccParagraph[]>([]);
 
@@ -48,7 +45,6 @@ export default function CccExplorePage() {
   const [loadingSections, setLoadingSections] = useState(false);
   const [loadingChapters, setLoadingChapters] = useState(false);
   const [loadingArticles, setLoadingArticles] = useState(false);
-  const [loadingSubheadings, setLoadingSubheadings] = useState(false);
   const [loadingParagraphs, setLoadingParagraphs] = useState(false);
 
   useEffect(() => {
@@ -77,10 +73,9 @@ export default function CccExplorePage() {
       setSelectedSection(null);
       setSelectedChapter(null);
       setSelectedArticle(null);
-      setSelectedSubheading(null);
+      setSelectedParagraph(null);
       setChapters([]);
       setArticles([]);
-      setSubheadings([]);
       setLoadingSections(false);
       return;
     }
@@ -89,10 +84,9 @@ export default function CccExplorePage() {
     setSelectedSection(null);
     setSelectedChapter(null);
     setSelectedArticle(null);
-    setSelectedSubheading(null);
+    setSelectedParagraph(null);
     setChapters([]);
     setArticles([]);
-    setSubheadings([]);
     const load = async () => {
       try {
         const data = await fetchCccSectionsByPartId(selectedPart.id);
@@ -113,9 +107,8 @@ export default function CccExplorePage() {
       setChapters([]);
       setSelectedChapter(null);
       setSelectedArticle(null);
-      setSelectedSubheading(null);
+      setSelectedParagraph(null);
       setArticles([]);
-      setSubheadings([]);
       setLoadingChapters(false);
       return;
     }
@@ -123,9 +116,8 @@ export default function CccExplorePage() {
     setLoadingChapters(true);
     setSelectedChapter(null);
     setSelectedArticle(null);
-    setSelectedSubheading(null);
+    setSelectedParagraph(null);
     setArticles([]);
-    setSubheadings([]);
     const load = async () => {
       try {
         const data = await fetchCccChaptersBySectionId(selectedSection.id);
@@ -144,32 +136,22 @@ export default function CccExplorePage() {
   useEffect(() => {
     if (!selectedChapter) {
       setArticles([]);
-      setSubheadings([]);
       setSelectedArticle(null);
-      setSelectedSubheading(null);
+      setSelectedParagraph(null);
       setLoadingArticles(false);
-      setLoadingSubheadings(false);
       return;
     }
     let cancelled = false;
     setLoadingArticles(true);
-    setLoadingSubheadings(true);
     setSelectedArticle(null);
-    setSelectedSubheading(null);
+    setSelectedParagraph(null);
     const load = async () => {
       try {
-        const [articlesData, subheadingsData] = await Promise.all([
-          fetchCccArticlesByChapterId(selectedChapter.id),
-          fetchCccSubheadingsByChapterId(selectedChapter.id),
-        ]);
+        const data = await fetchCccArticlesByChapterId(selectedChapter.id);
         if (cancelled) return;
-        setArticles(articlesData);
-        setSubheadings(subheadingsData);
+        setArticles(data);
       } finally {
-        if (!cancelled) {
-          setLoadingArticles(false);
-          setLoadingSubheadings(false);
-        }
+        if (!cancelled) setLoadingArticles(false);
       }
     };
     load();
@@ -179,7 +161,7 @@ export default function CccExplorePage() {
   }, [selectedChapter]);
 
   useEffect(() => {
-    setSelectedSubheading(null);
+    setSelectedParagraph(null);
   }, [selectedArticle]);
 
   useEffect(() => {
@@ -195,7 +177,6 @@ export default function CccExplorePage() {
       sectionId: selectedSection?.id,
       chapterId: selectedChapter?.id,
       articleId: selectedArticle?.id,
-      subheadingId: selectedSubheading?.id,
     };
     const load = async () => {
       try {
@@ -215,12 +196,12 @@ export default function CccExplorePage() {
     selectedSection,
     selectedChapter,
     selectedArticle,
-    selectedSubheading,
   ]);
 
-  const subheadingsToShow = selectedArticle
-    ? subheadings.filter((s) => s.article_id === selectedArticle.id)
-    : subheadings;
+  const paragraphInitialIndex =
+    selectedParagraph && paragraphs.length > 0
+      ? Math.max(0, paragraphs.findIndex((p) => p.id === selectedParagraph.id))
+      : 0;
 
   return (
     <div className="p-4 lg:p-8">
@@ -237,7 +218,7 @@ export default function CccExplorePage() {
             Catechism of the Catholic Church
           </h1>
           <p className="text-muted-foreground">
-            Read below. Use the sidebar to jump to a Part, Section, Chapter, Article, or Subheading. Use arrow keys to turn pages.
+            Read below. Use the sidebar to jump to a Part, Section, Chapter, Article, or Paragraph. Use arrow keys to turn pages.
           </p>
         </div>
 
@@ -377,36 +358,34 @@ export default function CccExplorePage() {
                   </div>
                 )}
 
-                {selectedChapter && (
+                {selectedArticle && paragraphs.length > 0 && (
                   <div>
                     <label className="text-sm font-semibold text-mustard uppercase tracking-wider mb-2 block">
-                      Subheading
+                      Paragraph
                     </label>
-                    {loadingSubheadings ? (
-                      <Skeleton className="h-10 w-full" />
-                    ) : subheadingsToShow.length === 0 ? (
-                      <p className="text-sm text-muted-foreground">No subheadings</p>
-                    ) : (
-                      <Select
-                        value={selectedSubheading?.id.toString() ?? ''}
-                        onValueChange={(val) => {
-                          const sub =
-                            subheadingsToShow.find((s) => s.id.toString() === val) ?? null;
-                          setSelectedSubheading(sub);
-                        }}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Subheading" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {subheadingsToShow.map((sub) => (
-                            <SelectItem key={sub.id} value={sub.id.toString()}>
-                              {sub.label ? `${sub.label}. ` : ''}{sub.title}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
+                    <Select
+                      value={selectedParagraph?.id.toString() ?? '__all__'}
+                      onValueChange={(val) => {
+                        if (val === '__all__') {
+                          setSelectedParagraph(null);
+                          return;
+                        }
+                        const p = paragraphs.find((x) => x.id.toString() === val) ?? null;
+                        setSelectedParagraph(p);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select Paragraph" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__all__">All in scope</SelectItem>
+                        {paragraphs.map((p) => (
+                          <SelectItem key={p.id} value={p.id.toString()}>
+                            Paragraph {p.paragraph_number}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
@@ -437,11 +416,14 @@ export default function CccExplorePage() {
                       {selectedSection?.title}
                       {selectedChapter && ` → ${selectedChapter.title}`}
                       {selectedArticle && ` → ${selectedArticle.title}`}
-                      {selectedSubheading && ` → ${selectedSubheading.title}`}
+                      {selectedParagraph && ` → Paragraph ${selectedParagraph.paragraph_number}`}
                     </p>
                   )}
                 </div>
-                <CccBookReader paragraphs={paragraphs} />
+                <CccBookReader
+                  paragraphs={paragraphs}
+                  initialIndex={selectedParagraph ? paragraphInitialIndex : 0}
+                />
               </>
             )}
           </div>

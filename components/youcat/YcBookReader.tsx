@@ -3,37 +3,30 @@
 import { useEffect, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import type { CccParagraph } from '@/lib/ccc/ccc-queries';
+import { YcQuestionDetailView } from '@/components/youcat/YcQuestionDetailView';
+import type { YcQuestionDetail } from '@/lib/youcat/yc-queries';
 
 type Props = {
-  paragraphs: CccParagraph[];
-  /** When set, reader starts at this index (e.g. from "Jump to section" Paragraph dropdown). */
-  initialIndex?: number;
+  questions: YcQuestionDetail[];
 };
 
-export function CccBookReader({ paragraphs, initialIndex = 0 }: Props) {
-  const [currentPageIndex, setCurrentPageIndex] = useState(initialIndex);
-  const total = paragraphs.length;
-  const safeIndex = total > 0 ? Math.min(currentPageIndex, total - 1) : 0;
-  const current = total > 0 ? paragraphs[safeIndex] : undefined;
+export function YcBookReader({ questions }: Props) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const total = questions.length;
+  const safeIndex = total > 0 ? Math.min(currentIndex, total - 1) : 0;
+  const current = total > 0 ? questions[safeIndex] : undefined;
 
   const goPrev = useCallback(() => {
-    setCurrentPageIndex((i) => Math.max(0, i - 1));
+    setCurrentIndex((i) => Math.max(0, i - 1));
   }, []);
 
   const goNext = useCallback(() => {
-    setCurrentPageIndex((i) => Math.min(total - 1, i + 1));
+    setCurrentIndex((i) => Math.min(total - 1, i + 1));
   }, [total]);
 
   useEffect(() => {
-    setCurrentPageIndex((prev) => Math.min(prev, Math.max(0, paragraphs.length - 1)));
-  }, [paragraphs]);
-
-  useEffect(() => {
-    if (initialIndex >= 0 && initialIndex < paragraphs.length) {
-      setCurrentPageIndex(initialIndex);
-    }
-  }, [initialIndex, paragraphs.length]);
+    setCurrentIndex((prev) => Math.min(prev, Math.max(0, questions.length - 1)));
+  }, [questions]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,10 +42,10 @@ export function CccBookReader({ paragraphs, initialIndex = 0 }: Props) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goPrev, goNext]);
 
-  if (paragraphs.length === 0 || current == null) {
+  if (questions.length === 0 || current == null) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center text-muted-foreground">
-        No paragraphs in this scope.
+        No questions in this scope.
       </div>
     );
   }
@@ -65,18 +58,10 @@ export function CccBookReader({ paragraphs, initialIndex = 0 }: Props) {
       className="rounded-xl border border-border bg-card shadow-lg overflow-hidden"
       tabIndex={0}
       role="region"
-      aria-label="CCC paragraph reader"
+      aria-label="YOUCAT question reader"
     >
-      <div className="p-6 lg:p-10 min-h-[320px] flex flex-col">
-        <div className="flex-1 prose prose-invert max-w-none">
-          <p className="text-sm font-semibold text-mustard uppercase tracking-wider mb-2">
-            Paragraph {current.paragraph_number}
-          </p>
-          <div className="text-base leading-relaxed whitespace-pre-line">
-            {current.text}
-          </div>
-        </div>
-
+      <div className="p-6 lg:p-10">
+        <YcQuestionDetailView question={current} showOpenFullPage={true} />
         <div className="mt-8 pt-6 border-t border-border flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Button
@@ -84,7 +69,7 @@ export function CccBookReader({ paragraphs, initialIndex = 0 }: Props) {
               size="sm"
               onClick={goPrev}
               disabled={!canGoPrev}
-              aria-label="Previous paragraph"
+              aria-label="Previous question"
             >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
@@ -94,14 +79,14 @@ export function CccBookReader({ paragraphs, initialIndex = 0 }: Props) {
               size="sm"
               onClick={goNext}
               disabled={!canGoNext}
-              aria-label="Next paragraph"
+              aria-label="Next question"
             >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
           </div>
           <p className="text-sm text-muted-foreground">
-            Paragraph {safeIndex + 1} of {total}
+            Question {safeIndex + 1} of {total}
             <span className="hidden sm:inline ml-2">· Use ← → to turn pages</span>
           </p>
         </div>

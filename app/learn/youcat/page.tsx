@@ -12,6 +12,11 @@ export default async function YoucatPage({ searchParams }: Props) {
   const resolvedParams = await searchParams;
   const params = parseYoucatParams(new URLSearchParams(resolvedParams as Record<string, string>));
 
+  // No params: same behaviour as CCC — go straight to explore page
+  if (params.part == null && params.section == null && params.chapter == null && params.question == null) {
+    redirect('/learn/youcat/explore');
+  }
+
   const context = await fetchNavigationContext(
     params.part,
     params.section,

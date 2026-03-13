@@ -25,7 +25,7 @@ import {
   type YcQuestion,
   type YcQuestionDetail,
 } from '@/lib/youcat/yc-queries';
-import { YcQuestionDetailView } from '@/components/youcat/YcQuestionDetailView';
+import { YcBookReader } from '@/components/youcat/YcBookReader';
 
 export default function YoucatExplorePage() {
   const [parts, setParts] = useState<YcPart[]>([]);
@@ -312,16 +312,16 @@ export default function YoucatExplorePage() {
         </Button>
 
         <div className="mb-8">
-          <h1 className="text-3xl lg:text-4xl font-display font-bold mb-2">Explore YOUCAT</h1>
+          <h1 className="text-3xl lg:text-4xl font-display font-bold mb-2">YOUCAT</h1>
           <p className="text-muted-foreground">
-            Select a Part, Section, Chapter, and optionally a Question to view the content
+            Youth Catechism of the Catholic Church. Use the sidebar to jump to a Part, Section, Chapter, and Question. Use arrow keys to turn pages.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-4">
             <Card className="p-6 sticky top-20">
-              <h2 className="text-lg font-display font-bold mb-4">Navigation</h2>
+              <h2 className="text-lg font-display font-bold mb-4">Jump to section</h2>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-semibold text-mustard uppercase tracking-wider mb-2 block">
@@ -496,15 +496,7 @@ export default function YoucatExplorePage() {
                           : 'No content in this selection.'}
                   </Card>
                 ) : (
-                  <div className="space-y-8">
-                    {scopeQuestionDetails.map((detail) => (
-                      <YcQuestionDetailView
-                        key={detail.id}
-                        question={detail}
-                        showOpenFullPage={true}
-                      />
-                    ))}
-                  </div>
+                  <YcBookReader questions={scopeQuestionDetails} />
                 )}
               </>
             )}
@@ -522,7 +514,7 @@ export default function YoucatExplorePage() {
                 {loadingQuestionDetail ? (
                   <Skeleton className="h-96 w-full" />
                 ) : questionDetail ? (
-                  <YcQuestionDetailView question={questionDetail} showOpenFullPage={true} />
+                  <YcBookReader questions={[questionDetail]} />
                 ) : (
                   <Card className="p-8 text-center text-muted-foreground">
                     Could not load question details.
