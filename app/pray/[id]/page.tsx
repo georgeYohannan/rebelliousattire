@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { use, useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Check } from 'lucide-react';
@@ -14,8 +14,12 @@ type Prayer = {
   content: string;
 };
 
-export default function PrayerPage() {
-  const params = useParams();
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export default function PrayerPage({ params }: Props) {
+  const { id } = use(params);
   const router = useRouter();
   const [prayer, setPrayer] = useState<Prayer | null>(null);
   const [completed, setCompleted] = useState(false);
@@ -26,7 +30,7 @@ export default function PrayerPage() {
       const { data } = await supabase
         .from('prayers')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', id)
         .maybeSingle();
 
       if (data) {
@@ -35,7 +39,7 @@ export default function PrayerPage() {
     };
 
     fetchPrayer();
-  }, [params.id, supabase]);
+  }, [id, supabase]);
 
   const handleComplete = async () => {
     const { data: { user } } = await supabase.auth.getUser();

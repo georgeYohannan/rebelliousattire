@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { use, useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,8 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, BookOpen, Check } from 'lucide-react';
 import { fetchYcQuestionDetail } from '@/lib/youcat/yc-queries';
 
-export default function YoucatQuestionPage() {
-  const params = useParams();
+type Props = {
+  params: Promise<{ id: string }>;
+};
+
+export default function YoucatQuestionPage({ params }: Props) {
+  const { id } = use(params);
   const router = useRouter();
   const [question, setQuestion] = useState<{
     id: number;
@@ -30,7 +34,7 @@ export default function YoucatQuestionPage() {
 
   useEffect(() => {
     const fetchQuestion = async () => {
-      const questionId = parseInt(params.id as string);
+      const questionId = parseInt(id, 10);
       if (isNaN(questionId)) return;
 
       const data = await fetchYcQuestionDetail(questionId);
@@ -41,7 +45,7 @@ export default function YoucatQuestionPage() {
     };
 
     fetchQuestion();
-  }, [params.id]);
+  }, [id]);
 
   const handleComplete = async () => {
     const { data: { user } } = await supabase.auth.getUser();

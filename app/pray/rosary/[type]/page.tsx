@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { use, useEffect, useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,16 +16,20 @@ type Mystery = {
   scriptural_references: string[];
 };
 
-export default function RosaryMeditationPage() {
-  const params = useParams();
+type Props = {
+  params: Promise<{ type: string }>;
+};
+
+export default function RosaryMeditationPage({ params }: Props) {
+  const { type } = use(params);
   const router = useRouter();
   const [mysteries, setMysteries] = useState<Mystery[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 
-  const mysteryType = typeof params.type === 'string'
-    ? params.type.charAt(0).toUpperCase() + params.type.slice(1)
+  const mysteryType = typeof type === 'string'
+    ? type.charAt(0).toUpperCase() + type.slice(1)
     : '';
 
   useEffect(() => {

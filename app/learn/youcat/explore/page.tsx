@@ -55,6 +55,9 @@ export default function YoucatExplorePage() {
         const data = await fetchAllYcParts();
         if (cancelled) return;
         setParts(data);
+        if (data.length > 0) {
+          setSelectedPart(data[0]);
+        }
       } finally {
         if (!cancelled) {
           setLoadingParts(false);
