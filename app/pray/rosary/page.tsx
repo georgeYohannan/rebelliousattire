@@ -17,7 +17,7 @@ type Mystery = {
   order: number;
   description: string;
   scriptural_references: string[];
-  recommended_days: string[];
+  recommended_days: string[] | null;
 };
 
 const mysteryImages: Record<string, string> = {
@@ -64,7 +64,7 @@ export default function RosaryPage() {
   }, {} as Record<string, Mystery[]>);
 
   const todaysMystery = Object.keys(groupedMysteries).find(type =>
-    groupedMysteries[type][0]?.recommended_days.includes(today)
+    groupedMysteries[type][0]?.recommended_days?.includes(today)
   );
 
   return (
@@ -98,81 +98,101 @@ export default function RosaryPage() {
 
           <TabsContent value="daily">
             {todaysMystery && (
-              <Link href={`/pray/rosary/${todaysMystery.toLowerCase()}`}>
-                <Card className="relative overflow-hidden hover:border-mustard transition-colors cursor-pointer">
-                  <div className="absolute top-4 left-4 z-10">
-                    <Badge className="bg-mustard text-navy hover:bg-mustard/90">
-                      TODAY
-                    </Badge>
+              <Card className="relative overflow-hidden hover:border-mustard transition-colors cursor-pointer">
+                <div className="absolute top-4 left-4 z-10">
+                  <Badge className="bg-mustard text-navy hover:bg-mustard/90">
+                    TODAY
+                  </Badge>
+                </div>
+                <div className="aspect-[16/9] relative">
+                  <img
+                    src={mysteryImages[todaysMystery]}
+                    alt={`${todaysMystery} Mysteries`}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <h3 className="text-2xl font-display font-bold text-white mb-2">
+                      {todaysMystery} Mysteries
+                    </h3>
+                    <p className="text-sm text-gray-200">
+                      {mysteryDescriptions[todaysMystery]}
+                    </p>
                   </div>
-                  <div className="aspect-[16/9] relative">
-                    <img
-                      src={mysteryImages[todaysMystery]}
-                      alt={`${todaysMystery} Mysteries`}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6">
-                      <h3 className="text-2xl font-display font-bold text-white mb-2">
-                        {todaysMystery} Mysteries
-                      </h3>
-                      <p className="text-sm text-gray-200">
-                        {mysteryDescriptions[todaysMystery]}
-                      </p>
-                    </div>
+                </div>
+                <div className="p-6">
+                  <div className="grid grid-cols-1 gap-3">
+                    <Link href={`/pray/rosary/${todaysMystery.toLowerCase()}`}>
+                      <Button className="w-full bg-mustard text-navy hover:bg-mustard/90">
+                        ▶ Pray Now
+                      </Button>
+                    </Link>
+                    <Link href={`/pray/rosary/${todaysMystery.toLowerCase()}/whole`}>
+                      <Button
+                        variant="outline"
+                        className="w-full hover:border-mustard transition-colors"
+                      >
+                        ▶ Pray Whole Rosary
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="p-6">
-                    <Button className="w-full bg-mustard text-navy hover:bg-mustard/90">
-                      ▶ Pray Now
-                    </Button>
-                  </div>
-                </Card>
-              </Link>
+                </div>
+              </Card>
             )}
           </TabsContent>
 
           <TabsContent value="all" className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {Object.entries(groupedMysteries).map(([type, typeMysteries]) => {
               const isToday = type === todaysMystery;
-              const days = typeMysteries[0]?.recommended_days.join(' & ') || '';
+              const days = typeMysteries[0]?.recommended_days?.join(' & ') ?? '';
 
               return (
-                <Link key={type} href={`/pray/rosary/${type.toLowerCase()}`}>
-                  <Card className="relative overflow-hidden hover:border-mustard transition-colors cursor-pointer h-full">
-                    {isToday && (
-                      <div className="absolute top-4 left-4 z-10">
-                        <Badge className="bg-mustard text-navy hover:bg-mustard/90">
-                          TODAY
-                        </Badge>
-                      </div>
-                    )}
-                    <div className="aspect-video relative">
-                      <img
-                        src={mysteryImages[type]}
-                        alt={`${type} Mysteries`}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <h3 className="text-xl font-display font-bold text-white">
-                          {type} Mysteries
-                        </h3>
-                        <p className="text-xs text-gray-300 mt-1">{days}</p>
-                      </div>
+                <Card className="relative overflow-hidden hover:border-mustard transition-colors cursor-pointer h-full" key={type}>
+                  {isToday && (
+                    <div className="absolute top-4 left-4 z-10">
+                      <Badge className="bg-mustard text-navy hover:bg-mustard/90">
+                        TODAY
+                      </Badge>
                     </div>
-                    <div className="p-4">
-                      <p className="text-sm text-muted-foreground mb-4">
-                        {mysteryDescriptions[type]}
-                      </p>
-                      <Button
-                        variant={isToday ? "default" : "outline"}
-                        className={isToday ? "w-full bg-mustard text-navy hover:bg-mustard/90" : "w-full"}
-                      >
-                        ▶ Pray Now
-                      </Button>
+                  )}
+                  <div className="aspect-video relative">
+                    <img
+                      src={mysteryImages[type]}
+                      alt={`${type} Mysteries`}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                      <h3 className="text-xl font-display font-bold text-white">
+                        {type} Mysteries
+                      </h3>
+                      <p className="text-xs text-gray-300 mt-1">{days}</p>
                     </div>
-                  </Card>
-                </Link>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {mysteryDescriptions[type]}
+                    </p>
+                    <div className="grid grid-cols-1 gap-3">
+                      <Link href={`/pray/rosary/${type.toLowerCase()}`}>
+                        <Button
+                          variant={isToday ? "default" : "outline"}
+                          className={isToday ? "w-full bg-mustard text-navy hover:bg-mustard/90" : "w-full"}
+                        >
+                          ▶ Pray Now
+                        </Button>
+                      </Link>
+                      <Link href={`/pray/rosary/${type.toLowerCase()}/whole`}>
+                        <Button
+                          variant="outline"
+                          className="w-full hover:border-mustard transition-colors"
+                        >
+                          ▶ Pray Whole Rosary
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </Card>
               );
             })}
           </TabsContent>

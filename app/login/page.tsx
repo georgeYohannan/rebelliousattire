@@ -33,7 +33,7 @@ export default function LoginPage() {
         if (error) throw error;
 
         if (data.user) {
-          await supabase.from('profiles').insert({
+          await supabase.from('user_profiles').insert({
             id: data.user.id,
             name: name || email.split('@')[0],
             role_title: 'Faith Warrior',

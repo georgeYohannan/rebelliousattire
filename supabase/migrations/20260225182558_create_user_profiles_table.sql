@@ -19,7 +19,7 @@
     - Add policy for authenticated users to view other profiles (for community features)
 */
 
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE IF NOT EXISTS user_profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name text NOT NULL,
   role_title text DEFAULT 'Faith Warrior',
@@ -30,29 +30,29 @@ CREATE TABLE IF NOT EXISTS profiles (
   updated_at timestamptz DEFAULT now()
 );
 
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can read own profile"
-  ON profiles
+  ON user_profiles
   FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
 CREATE POLICY "Users can update own profile"
-  ON profiles
+  ON user_profiles
   FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can insert own profile"
-  ON profiles
+  ON user_profiles
   FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Authenticated users can view other profiles"
-  ON profiles
+  ON user_profiles
   FOR SELECT
   TO authenticated
   USING (true);

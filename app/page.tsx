@@ -31,7 +31,7 @@ export default function Home() {
     if (user) {
       const fetchProfile = async () => {
         const { data } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();

@@ -8,17 +8,26 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import {
+  fetchRosaryVariants,
+  fetchUserDefaultRosaryVariantId,
+  setUserDefaultRosaryVariantId,
+  type RosaryVariant,
+} from '@/lib/prayer/prayer-queries';
 
 export default function SettingsPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState({ name: '', role_title: '' });
+  const [rosaryVariants, setRosaryVariants] = useState<RosaryVariant[]>([]);
+  const [selectedRosaryVariantId, setSelectedRosaryVariantId] = useState<string>('');
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     if (user) {
       const fetchProfile = async () => {
         const { data } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .select('*')
           .eq('id', user.id)
           .maybeSingle();
@@ -31,15 +40,46 @@ export default function SettingsPage() {
     }
   }, [user, supabase]);
 
+  useEffect(() => {
+    const loadVariants = async () => {
+      const [variants, savedDefaultVariantId] = await Promise.all([
+        fetchRosaryVariants(),
+        fetchUserDefaultRosaryVariantId(),
+      ]);
+      setRosaryVariants(variants);
+
+      if (savedDefaultVariantId) {
+        setSelectedRosaryVariantId(savedDefaultVariantId);
+      } else if (!selectedRosaryVariantId) {
+        const fallback = variants.find((v) => v.is_default) ?? variants[0];
+        if (fallback) setSelectedRosaryVariantId(fallback.id);
+      }
+    };
+
+    loadVariants();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSaveProfile = async () => {
     if (user) {
       await supabase
-        .from('profiles')
+        .from('user_profiles')
         .upsert({
           id: user.id,
           name: profile.name,
           role_title: profile.role_title,
         });
+    }
+  };
+
+  const handleSaveRosaryVariant = async () => {
+    if (!user) return;
+    if (!selectedRosaryVariantId) return;
+    const ok = await setUserDefaultRosaryVariantId(selectedRosaryVariantId);
+    if (ok) {
+      toast.success('Rosary preference saved.');
+    } else {
+      toast.error('Failed to save Rosary preference. Check console for details.');
     }
   };
 
@@ -139,6 +179,37 @@ export default function SettingsPage() {
                   <option>Douay-Rheims</option>
                 </select>
               </div>
+            </div>
+          </Card>
+
+          <Card className="p-6">
+            <h2 className="text-xl font-display font-semibold mb-4">Prayer Preferences</h2>
+            <div className="space-y-4">
+              <div>
+                <Label>Default Rosary Variant</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Choose which Rosary sequence you want the guided flow to use by default.
+                </p>
+                <select
+                  className="w-full p-2 bg-secondary border border-border rounded-md"
+                  value={selectedRosaryVariantId}
+                  onChange={(e) => setSelectedRosaryVariantId(e.target.value)}
+                >
+                  {rosaryVariants.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <Button
+                onClick={handleSaveRosaryVariant}
+                className="bg-mustard text-navy hover:bg-mustard/90"
+                disabled={!selectedRosaryVariantId || rosaryVariants.length === 0}
+              >
+                Save Rosary Preference
+              </Button>
             </div>
           </Card>
         </div>
