@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BookHeart, Clock, Sun, Moon, Utensils } from 'lucide-react';
 import Link from 'next/link';
@@ -14,6 +15,16 @@ type Prayer = {
   content: string;
 };
 
+type RosaryMystery = {
+  id: string;
+  mystery_type: string;
+  order: number;
+  name: string;
+  image_url: string | null;
+  cover_image_url: string | null;
+  recommended_days: string[] | null;
+};
+
 const categoryIcons: Record<string, any> = {
   Morning: Sun,
   Evening: Moon,
@@ -23,6 +34,7 @@ const categoryIcons: Record<string, any> = {
 
 export default function PrayPage() {
   const [prayers, setPrayers] = useState<Prayer[]>([]);
+  const [rosaryMysteries, setRosaryMysteries] = useState<RosaryMystery[]>([]);
   const [loading, setLoading] = useState(true);
   const supabase = useMemo(() => createClient(), []);
 
@@ -42,6 +54,24 @@ export default function PrayPage() {
     fetchPrayers();
   }, [supabase]);
 
+  useEffect(() => {
+    const fetchRosaryMysteries = async () => {
+      const { data, error } = await supabase
+        .from('rosary_mysteries')
+        .select('id,mystery_type,order,name,image_url,cover_image_url,recommended_days')
+        .order('order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching rosary mysteries:', error);
+        return;
+      }
+
+      setRosaryMysteries((data || []) as RosaryMystery[]);
+    };
+
+    fetchRosaryMysteries();
+  }, [supabase]);
+
   const groupedPrayers = prayers.reduce((acc, prayer) => {
     if (!acc[prayer.category]) {
       acc[prayer.category] = [];
@@ -51,6 +81,40 @@ export default function PrayPage() {
   }, {} as Record<string, Prayer[]>);
 
   const todayPrayers = prayers.filter(p => p.category === 'Morning' || p.category === 'Evening');
+  const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+
+  const todaysMysteryType = useMemo(() => {
+    const mysteryByType = rosaryMysteries.reduce((acc, mystery) => {
+      if (!acc[mystery.mystery_type]) {
+        acc[mystery.mystery_type] = [];
+      }
+      acc[mystery.mystery_type].push(mystery);
+      return acc;
+    }, {} as Record<string, RosaryMystery[]>);
+
+    return Object.keys(mysteryByType).find((type) =>
+      mysteryByType[type][0]?.recommended_days?.includes(today)
+    ) ?? null;
+  }, [rosaryMysteries, today]);
+
+  const todaysMysteryImage = useMemo(() => {
+    if (!todaysMysteryType) return null;
+    return (
+      rosaryMysteries.find(
+        (mystery) =>
+          mystery.mystery_type === todaysMysteryType &&
+          (Boolean(mystery.cover_image_url) || Boolean(mystery.image_url))
+      )?.cover_image_url ??
+      rosaryMysteries.find(
+        (mystery) => mystery.mystery_type === todaysMysteryType && Boolean(mystery.image_url)
+      )?.image_url ??
+      null
+    );
+  }, [rosaryMysteries, todaysMysteryType]);
+
+  const startRosaryHref = todaysMysteryType
+    ? `/pray/rosary/${todaysMysteryType.toLowerCase()}/whole`
+    : '/pray/rosary';
 
   return (
     <div className="p-4 lg:p-8">
@@ -121,15 +185,34 @@ export default function PrayPage() {
           </TabsContent>
 
           <TabsContent value="rosary">
-            <Link href="/pray/rosary">
-              <Card className="p-8 text-center hover:border-mustard transition-colors cursor-pointer">
-                <BookHeart className="h-12 w-12 text-mustard mx-auto mb-4" />
+            <Card className="overflow-hidden hover:border-mustard transition-colors">
+              {todaysMysteryImage ? (
+                <div className="aspect-[16/7] w-full">
+                  <img
+                    src={todaysMysteryImage}
+                    alt={todaysMysteryType ? `${todaysMysteryType} mystery` : 'Rosary mystery'}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="p-8 pb-0 text-center">
+                  <BookHeart className="h-12 w-12 text-mustard mx-auto mb-4" />
+                </div>
+              )}
+              <div className="p-6 text-center">
                 <h3 className="text-2xl font-display font-semibold mb-2">Holy Rosary</h3>
-                <p className="text-muted-foreground">
-                  Pray the rosary with guided mysteries and meditation
+                <p className="text-muted-foreground mb-5">
+                  {todaysMysteryType
+                    ? `Today: ${todaysMysteryType} Mysteries`
+                    : 'Pray the rosary with guided mysteries and meditation'}
                 </p>
-              </Card>
-            </Link>
+                <Link href={startRosaryHref}>
+                  <Button className="w-full bg-mustard text-navy hover:bg-mustard/90">
+                    Start Rosary
+                  </Button>
+                </Link>
+              </div>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

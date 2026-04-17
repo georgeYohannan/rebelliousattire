@@ -12,8 +12,9 @@ type Mystery = {
   mystery_type: string;
   name: string;
   order: number;
-  description: string;
-  scriptural_references: string[];
+  description: string | null;
+  scriptural_references: string[] | null;
+  image_url: string | null;
 };
 
 type Props = {
@@ -83,7 +84,7 @@ export default function RosaryMeditationPage({ params }: Props) {
         <Card className="bg-card/50 backdrop-blur border-mustard/20">
           <div className="aspect-[4/3] relative">
             <img
-              src="https://images.pexels.com/photos/8468148/pexels-photo-8468148.jpeg?auto=compress&cs=tinysrgb&w=1200"
+              src={currentMystery.image_url || 'https://images.pexels.com/photos/8468148/pexels-photo-8468148.jpeg?auto=compress&cs=tinysrgb&w=1200'}
               alt={currentMystery.name}
               className="w-full h-full object-cover rounded-t-lg"
             />
@@ -101,11 +102,11 @@ export default function RosaryMeditationPage({ params }: Props) {
           <div className="p-8">
             <div className="mb-6">
               <p className="text-lg text-foreground/90 italic mb-4">
-                &ldquo;{currentMystery.description}&rdquo;
+                &ldquo;{currentMystery.description || 'Meditate on this mystery with Christ.'}&rdquo;
               </p>
-              {currentMystery.scriptural_references.length > 0 && (
+              {(currentMystery.scriptural_references?.length ?? 0) > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Scripture: {currentMystery.scriptural_references.join(', ')}
+                  Scripture: {currentMystery.scriptural_references?.join(', ')}
                 </p>
               )}
             </div>

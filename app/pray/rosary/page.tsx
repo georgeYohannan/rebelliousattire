@@ -15,16 +15,11 @@ type Mystery = {
   mystery_type: string;
   name: string;
   order: number;
-  description: string;
-  scriptural_references: string[];
+  description: string | null;
+  scriptural_references: string[] | null;
+  image_url: string | null;
+  cover_image_url: string | null;
   recommended_days: string[] | null;
-};
-
-const mysteryImages: Record<string, string> = {
-  Joyful: 'https://images.pexels.com/photos/6646918/pexels-photo-6646918.jpeg?auto=compress&cs=tinysrgb&w=800',
-  Sorrowful: 'https://images.pexels.com/photos/7672246/pexels-photo-7672246.jpeg?auto=compress&cs=tinysrgb&w=800',
-  Glorious: 'https://images.pexels.com/photos/1261728/pexels-photo-1261728.jpeg?auto=compress&cs=tinysrgb&w=800',
-  Luminous: 'https://images.pexels.com/photos/2387793/pexels-photo-2387793.jpeg?auto=compress&cs=tinysrgb&w=800',
 };
 
 const mysteryDescriptions: Record<string, string> = {
@@ -67,6 +62,15 @@ export default function RosaryPage() {
     groupedMysteries[type][0]?.recommended_days?.includes(today)
   );
 
+  const getMysteryCoverImage = (type: string) => {
+    const typeMysteries = groupedMysteries[type] ?? [];
+    return (
+      typeMysteries.find((m) => Boolean(m.cover_image_url))?.cover_image_url ??
+      typeMysteries.find((m) => Boolean(m.image_url))?.image_url ??
+      ''
+    );
+  };
+
   return (
     <div className="p-4 lg:p-8">
       <div className="max-w-6xl mx-auto">
@@ -106,7 +110,7 @@ export default function RosaryPage() {
                 </div>
                 <div className="aspect-[16/9] relative">
                   <img
-                    src={mysteryImages[todaysMystery]}
+                    src={getMysteryCoverImage(todaysMystery)}
                     alt={`${todaysMystery} Mysteries`}
                     className="w-full h-full object-cover"
                   />
@@ -157,7 +161,7 @@ export default function RosaryPage() {
                   )}
                   <div className="aspect-video relative">
                     <img
-                      src={mysteryImages[type]}
+                      src={getMysteryCoverImage(type)}
                       alt={`${type} Mysteries`}
                       className="w-full h-full object-cover"
                     />

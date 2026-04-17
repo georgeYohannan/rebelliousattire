@@ -14,6 +14,8 @@ export type RosaryMystery = {
   description: string | null;
   scriptural_references: string[] | null;
   recommended_days: string[] | null;
+  /** Public URL (e.g. Supabase Storage) for decade artwork */
+  image_url: string | null;
 };
 
 export type RosaryVariant = {
