@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, BookHeart, BookOpen, Book, Settings, MessageCircle } from 'lucide-react';
+import { Home, BookHeart, BookOpen, Book, Settings, MessageCircle, Sparkles } from 'lucide-react';
 import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useState, useEffect } from 'react';
@@ -11,6 +11,7 @@ const navigation = [
   { name: 'Home', href: '/', icon: Home },
   { name: 'Pray', href: '/pray', icon: BookHeart },
   { name: 'Learn', href: '/learn', icon: BookOpen },
+  { name: 'Saints', href: '/saints', icon: Sparkles },
   { name: 'Bible', href: '/bible', icon: Book },
   { name: 'Ask', href: '/ask', icon: MessageCircle },
   { name: 'Settings', href: '/settings', icon: Settings },
